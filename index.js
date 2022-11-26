@@ -26,6 +26,7 @@ async function run() {
         const oneplusCollection = client.db('phonePlanet').collection('oneplus')
         const usersCollection = client.db('phonePlanet').collection('users')
         const bookingsCollection = client.db('phonePlanet').collection('bookings')
+        const sellerProductsCollection = client.db('phonePlanet').collection('sellerProducts')
 
 
         // jwt
@@ -47,6 +48,30 @@ async function run() {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result)
+        })
+
+        // admin
+
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin' });
+        })
+
+        // seller
+
+        app.post('/users/seller', async (req, res) => {
+            const user = req.body;
+            const result = await sellerProductsCollection.insertOne(user);
+            res.send(result)
+        })
+
+        app.get('/users/seller/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isSeller: user?.role === 'seller' });
         })
 
         app.get('/iphone', async (req, res) => {
