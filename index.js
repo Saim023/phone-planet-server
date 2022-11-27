@@ -164,6 +164,20 @@ async function run() {
             res.send(sellers);
         })
 
+        app.delete('/admin/all-buyers/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        app.delete('/admin/all-seller/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(filter);
+            res.send(result);
+        })
+
 
         // iphone
         app.get('/iphone', async (req, res) => {
