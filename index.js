@@ -150,6 +150,14 @@ async function run() {
             res.send(advertisedItems)
         })
 
+        // admin
+
+        app.get('/admin/allBuyers', async (req, res) => {
+            const query = { role: "buyer" };
+            const buyers = await usersCollection.find(query).toArray();
+            res.send(buyers);
+        })
+
 
         // iphone
         app.get('/iphone', async (req, res) => {
