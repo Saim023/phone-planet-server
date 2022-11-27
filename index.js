@@ -144,6 +144,13 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/advertised', async (req, res) => {
+            const query = {};
+            const advertisedItems = await sellerAdvertisedCollection.find(query).toArray();
+            res.send(advertisedItems)
+        })
+
+
         // iphone
         app.get('/iphone', async (req, res) => {
             const query = {};
