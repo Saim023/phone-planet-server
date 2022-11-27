@@ -19,6 +19,56 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@aster.gyayqwe.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+
+// verifyJWT
+
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    console.log(authHeader)
+
+    if (!authHeader) {
+        return res.status(401).send('unauthorized access')
+    }
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (error, decoded) {
+        if (error) {
+            return res.status(403).send({ message: 'forbidden access token' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+};
+
+// verifySeller
+
+const verifySeller = async (req, res, next) => {
+    const decodedEmail = req.decoded.emil;
+    const query = { email: decodedEmail };
+    const user = await usersCollection.findOne(query);
+
+    if (user?.role !== 'seller' || user?.role !== 'admin') {
+        res.status(403).send({ message: 'forbidden access' })
+    }
+
+    next();
+}
+
+// verifyAdmin
+
+const verifyAdmin = async (req, res, next) => {
+    const decodedEmail = req.decoded.emil;
+    const query = { email: decodedEmail };
+    const user = await usersCollection.findOne(query);
+
+    if (user?.role !== 'admin') {
+        res.status(403).send({ message: 'forbidden access' })
+    }
+
+    next();
+}
+
+
 async function run() {
     try {
         const iphoneCollection = client.db('phonePlanet').collection('iphone')
@@ -62,9 +112,15 @@ async function run() {
         // seller
 
         app.post('/users/seller', async (req, res) => {
-            const user = req.body;
-            const result = await sellerProductsCollection.insertOne(user);
+            const addProducts = req.body;
+            const result = await sellerProductsCollection.insertOne(addProducts);
             res.send(result)
+        })
+
+        app.get('/users/seller', async (req, res) => {
+            const query = {};
+            const myProducts = await sellerProductsCollection.find(query).toArray();
+            res.send(myProducts)
         })
 
         app.get('/users/seller/:email', async (req, res) => {
@@ -74,6 +130,14 @@ async function run() {
             res.send({ isSeller: user?.role === 'seller' });
         })
 
+        app.delete('/users/seller/:id', verifyJWT, verifySeller, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await sellerProductsCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        // iphone
         app.get('/iphone', async (req, res) => {
             const query = {};
             const iphone = await iphoneCollection.find(query).toArray();
