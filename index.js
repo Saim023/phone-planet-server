@@ -47,7 +47,7 @@ const verifySeller = async (req, res, next) => {
     const query = { email: decodedEmail };
     const user = await usersCollection.findOne(query);
 
-    if (user?.role !== 'seller' || user?.role !== 'admin') {
+    if (user?.role !== 'seller') {
         res.status(403).send({ message: 'forbidden access' })
     }
 
@@ -77,6 +77,7 @@ async function run() {
         const usersCollection = client.db('phonePlanet').collection('users')
         const bookingsCollection = client.db('phonePlanet').collection('bookings')
         const sellerProductsCollection = client.db('phonePlanet').collection('sellerProducts')
+        const sellerAdvertisedCollection = client.db('phonePlanet').collection('sellerAdvertised')
 
 
         // jwt
@@ -135,6 +136,12 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             const result = await sellerProductsCollection.deleteOne(filter);
             res.send(result);
+        })
+
+        app.post('/users/seller/advertised', async (req, res) => {
+            const addProducts = req.body;
+            const result = await sellerAdvertisedCollection.insertOne(addProducts);
+            res.send(result)
         })
 
         // iphone
